@@ -15,11 +15,9 @@ jobs:
         with:
           node-version: "12.x"
       - name: Dependency installer
-        id: changelogDep
-        run: |
-          npm ci
+        run: yarn install
       - name: Changelog Generator
         id: changelogGen
-        run: npm run changelog
+        run: yarn changelog
         env:
           token: ${{ secrets.GITHUB_TOKEN }}
