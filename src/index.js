@@ -169,9 +169,10 @@ const postToGit = async (url, key, body) => {
     [majorChanges, minorChanges, otherChanges].forEach((changeType) => {
       const groupedChanges = groupChangelog(changeType.changes);
       if (Object.keys(groupedChanges).length > 0) {
-        changesTemplate = `${changesTemplate}${
-          changeType.title
-        }${changesToTemplate(groupedChanges)}
+        changesTemplate = `
+${changesTemplate}
+
+${changeType.title}${changesToTemplate(groupedChanges)}
 `;
       }
     });
