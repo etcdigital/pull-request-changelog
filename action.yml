@@ -1,0 +1,13 @@
+name: '(Gitflow) Changelog Generator'
+description: 'Github action that creates a changelog upon PR opening. Commit messages are grouped by type and change level (semversioning).'
+author: 'sinisag'
+branding:
+  icon: 'file-text'  
+  color: 'white'
+inputs:
+  token:
+    required: true
+    description: 'As provided by Github Actions'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'

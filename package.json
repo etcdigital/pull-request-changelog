@@ -1,0 +1,31 @@
+{
+  "name": "pull-request-changelog",
+  "version": "1.0.0",
+  "description": "Github action that automatically generates changelog when PR is opened/updated",
+  "main": "dist/index.js",
+  "scripts": {
+    "changelog": "node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/etcdigital/pull-request-changelog.git"
+  },
+  "keywords": [
+    "github",
+    "actions",
+    "changelog",
+    "gitflow"
+  ],
+  "author": "Tiago Souza",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/etcdigital/pull-request-changelog/issues"
+  },
+  "homepage": "https://github.com/etcdigital/pull-request-changelog#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.3",
+    "@actions/exec": "^1.0.3",
+    "@actions/github": "^2.1.1",
+    "node-fetch": "^2.6.0"
+  }
+}

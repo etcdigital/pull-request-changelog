@@ -1,0 +1,25 @@
+name: Changelog Generator
+on:
+  pull_request:
+    branches:
+      - master
+    types: [opened, reopened, synchronize]
+
+jobs:
+  changelog:
+    name: Chanegelog Generator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+      - name: Dependency installer
+        id: changelogDep
+        run: |
+          npm ci
+      - name: Changelog Generator
+        id: changelogGen
+        run: npm run changelog
+        env:
+          token: ${{ secrets.GITHUB_TOKEN }}
