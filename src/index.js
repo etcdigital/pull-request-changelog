@@ -21,6 +21,21 @@ const isFeatChange = (change) => {
   return change.includes(":sparkles:") || firstWord.includes("feat");
 };
 
+const isFixesChange = (change) => {
+  const firstWord = change.split(" ")[0];
+  return change.includes(":bug:") || firstWord.includes("fix");
+};
+
+const isDevOpsChange = (change) => {
+  const firstWord = change.split(" ")[0];
+  return (
+    change.includes(":white_check_mark") ||
+    firstWord.includes("ci:") ||
+    firstWord.includes("build:") ||
+    firstWord.includes("test:")
+  );
+};
+
 /***
  * @param {String} changelog: String of changes, where every line is an entry in changelog
  * Changelog from git comes in string format, where every line
@@ -148,14 +163,24 @@ const postToGit = async (url, key, body) => {
       .split("\n")
       .map((c) => c.substring(1, c.length - 1));
 
-    const majorChanges = {
+    const breakChanges = {
       title: "### Breaking Changes",
       changes: changes.filter((change) => isBreakingChange(change)),
     };
 
-    const minorChanges = {
+    const featChanges = {
       title: "### Features",
       changes: changes.filter((change) => isFeatChange(change)),
+    };
+
+    const fixesChanges = {
+      title: "### Features",
+      changes: changes.filter((change) => isFixesChange(change)),
+    };
+
+    const devOpsChanges = {
+      title: "### DevOps",
+      changes: changes.filter((change) => !isDevOpsChange(change)),
     };
 
     const otherChanges = {
@@ -166,7 +191,13 @@ const postToGit = async (url, key, body) => {
     };
 
     let changesTemplate = "";
-    [majorChanges, minorChanges, otherChanges].forEach((changeType) => {
+    [
+      breakChanges,
+      featChanges,
+      fixesChanges,
+      devOpsChanges,
+      otherChanges,
+    ].forEach((changeType) => {
       const groupedChanges = groupChangelog(changeType.changes);
       if (Object.keys(groupedChanges).length > 0) {
         changesTemplate = `
