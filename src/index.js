@@ -164,27 +164,37 @@ const postToGit = async (url, key, body) => {
       .map((c) => c.substring(1, c.length - 1));
 
     const breakChanges = {
-      title: "### Breaking Changes",
+      title: `### Breaking Changes
+
+`,
       changes: changes.filter((change) => isBreakingChange(change)),
     };
 
     const featChanges = {
-      title: "### Features",
+      title: `### Features
+
+`,
       changes: changes.filter((change) => isFeatChange(change)),
     };
 
     const fixesChanges = {
-      title: "### Features",
+      title: `### Features
+
+`,
       changes: changes.filter((change) => isFixesChange(change)),
     };
 
     const devOpsChanges = {
-      title: "### DevOps",
+      title: `### DevOps
+
+`,
       changes: changes.filter((change) => !isDevOpsChange(change)),
     };
 
     const otherChanges = {
-      title: "### Changes",
+      title: `### Changes
+
+`,
       changes: changes.filter(
         (change) => !isBreakingChange(change) && !isFeatChange(change)
       ),
