@@ -150,7 +150,7 @@ const postToGit = async (url, key, body) => {
     };
     // get diff between master and current branch
     await exec.exec(
-      `git log --no-merges origin/pr/${github.context.payload.pull_request.number} ^origin/master --pretty='%s'`,
+      `git log --no-merges origin/pr/${github.context.payload.pull_request.number} ^origin/master --pretty='format:%h %H %s'`,
       [],
       options
     );
