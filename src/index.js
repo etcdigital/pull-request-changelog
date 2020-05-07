@@ -159,9 +159,11 @@ const postToGit = async (url, key, body) => {
       throw new Error(myError);
     }
     // output is quoted, so we need to remove the quotes and split it by \n to get each change
+    console.log({ myOutput });
     const changes = myOutput
       .split("\n")
       .map((c) => c.substring(1, c.length - 1));
+    console.log({ changes });
 
     const breakChanges = {
       title: `### Breaking Changes
