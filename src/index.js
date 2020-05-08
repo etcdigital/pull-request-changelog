@@ -40,15 +40,12 @@ const prepareCommit = (str) => {
   return { prefix, message };
 };
 
+const otherCategory = "other";
+
 const categories = {
   "feat:": "feat",
   "fix:": "fix",
-  "ci:": "maintenance",
-  "test:": "maintenance",
-  "build:": "maintenance",
 };
-
-const otherCategory = "other";
 
 const getCategory = (prefix) => {
   const category = prefix ? categories[prefix] : otherCategory;
@@ -118,7 +115,7 @@ const getCategory = (prefix) => {
         changes[category] = [];
       }
       changes[category].push(
-        `${hashLink} ${category !== otherCategory ? prefixBold : ""}${message}`
+        `${hashLink} ${category === otherCategory ? prefixBold : ""}${message}`
       );
     });
 
@@ -136,12 +133,6 @@ const getCategory = (prefix) => {
       changesTemplate += `
 ## 🐞Fixes${breakline}`;
       changesTemplate += changes["fix"].join(breakline);
-    }
-
-    if (changes["maintenance"]) {
-      changesTemplate += `
-## 🧰Maintenance${breakline}`;
-      changesTemplate += changes["maintenance"].join(breakline);
     }
 
     if (changes[otherCategory]) {
