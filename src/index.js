@@ -124,9 +124,10 @@ const getCategory = (prefix) => {
       );
     });
 
-    let changesTemplate = "```";
     const breakline = `
+
 `;
+    let changesTemplate = `\`\`\`markdown${breakline}`;
 
     if (changes["feat"]) {
       changesTemplate += `### Features${breakline}`;
