@@ -14,6 +14,27 @@ post a comment to PR with all the changes that are going to be merged to `master
 
 There are a few assumptions that you should be aware, when you're using this action.
 
-## More information
+## How use
 
-See the action .github/workflows/changelog.yml and pull requests
+Create a file `.github/workflows/changelog.yml` with:
+
+```yml
+name: Changelog Generator
+on:
+  pull_request:
+    branches:
+      - master
+    types: [opened, reopened, synchronize]
+
+jobs:
+  changelog:
+    name: Chanegelog Generator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: etcdigital/pull-request-changelog@1.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+[See the result...](https://github.com/etcdigital/pull-request-changelog/pull/1#issuecomment-625586295)
