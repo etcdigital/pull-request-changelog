@@ -61,6 +61,8 @@ const getHeader = (prefix) => {
 const commitUrl = (hash) =>
   `https://github.com/etcdigital/pull-request-changelog/pull/${PR_ID}/commits/${hash}`;
 
+let changes = [];
+
 const prepareOutput = (line) => {
   const hash = line.substr(0, 40);
   const { prefix, message } = prepareCommit(line.substr(41));
@@ -116,8 +118,6 @@ const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pret
     if (myError !== "") {
       throw new Error(myError);
     }
-
-    let changes = [];
 
     myOutput.split("\n").forEach(prepareOutput);
 
