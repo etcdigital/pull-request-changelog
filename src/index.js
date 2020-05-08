@@ -107,7 +107,7 @@ const getCategory = (prefix) => {
       const hashLink = `([${hash.substr(
         0,
         7
-      )}](https://github.com/etcdigital/pull-request-changelog/pull/${prNumber}/commits/${hash}));
+      )}](https://github.com/etcdigital/pull-request-changelog/pull/${prNumber}/commits/${hash}))`;
       const prefixBold = prefix ? `**${prefix}** ` : "";
 
       const category = getCategory(prefix);
