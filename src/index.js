@@ -118,9 +118,7 @@ const getCategory = (prefix) => {
         changes[category] = [];
       }
       changes[category].push(
-        `(${hashLink}) ${
-          category !== otherCategory ? prefixBold : ""
-        }${message}`
+        `${hashLink} ${category !== otherCategory ? prefixBold : ""}${message}`
       );
     });
 
