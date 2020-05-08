@@ -1,8 +1,6 @@
 # Github Action PR Changelog Generator
 
-Heavy inspiration [https://github.com/etcdigital/pull-request-changelog](Changelog Generator Github Action) 🖤
-
-Github action that creates a changelog upon PR opening. The changelog will contain all the commit messages grouped by type and change level (major, minor, patch).
+Github action that creates a changelog on opening or updating the PR.
 
 ## Dependencies
 
