@@ -124,7 +124,7 @@ const getCategory = (prefix) => {
       );
     });
 
-    const changesTemplate = "```";
+    let changesTemplate = "```";
     const breakline = `
 `;
 
