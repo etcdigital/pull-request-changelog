@@ -67,6 +67,10 @@ const prepareOutput = (line) => {
   const hash = line.substr(0, 40);
   const { prefix, message } = prepareCommit(line.substr(41));
 
+  if (!prefix && !message) {
+    return;
+  }
+
   const hashLink = `([${hash.substr(0, 7)}](${commitUrl(hash)}))`;
   const prefixBold = prefix ? `**${prefix}** ` : "";
 
