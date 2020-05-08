@@ -104,10 +104,10 @@ const getCategory = (prefix) => {
       const hash = line.substr(0, 40);
       const { prefix, message } = prepareCommit(line.substr(41));
 
-      const hashLink = `[${hash.substr(
+      const hashLink = `\`[${hash.substr(
         0,
         7
-      )}](https://github.com/etcdigital/pull-request-changelog/pull/${prNumber}/commits/${hash})`;
+      )}](https://github.com/etcdigital/pull-request-changelog/pull/${prNumber}/commits/${hash})\``;
       const prefixBold = prefix ? `**${prefix}** ` : "";
 
       const category = getCategory(prefix);
@@ -115,7 +115,9 @@ const getCategory = (prefix) => {
         changes[category] = [];
       }
       changes[category].push(
-        `${hashLink} ${category === otherCategory ? prefixBold : ""}${message}`
+        `- ${
+          category === otherCategory ? prefixBold : ""
+        }${message} ${hashLink}`
       );
     });
 
@@ -125,19 +127,19 @@ const getCategory = (prefix) => {
 
     if (changes["feat"]) {
       changesTemplate += `
-## ⭐️Features${breakline}`;
+### ✨ Features${breakline}`;
       changesTemplate += changes["feat"].join(breakline);
     }
 
     if (changes["fix"]) {
       changesTemplate += `
-## 🐞Fixes${breakline}`;
+### 🐞 Fixes${breakline}`;
       changesTemplate += changes["fix"].join(breakline);
     }
 
     if (changes[otherCategory]) {
       changesTemplate += `
-## 📋Changes${breakline}`;
+### 📋 Changes${breakline}`;
       changesTemplate += changes[otherCategory].join(breakline);
     }
 
