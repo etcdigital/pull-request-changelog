@@ -128,22 +128,26 @@ const getCategory = (prefix) => {
     let changesTemplate = "";
 
     if (changes["feat"]) {
-      changesTemplate += `### Features${breakline}`;
+      changesTemplate += `
+### Features${breakline}`;
       changesTemplate += changes["feat"].join(breakline);
     }
 
     if (changes["fix"]) {
-      changesTemplate += `### Fixes${breakline}`;
+      changesTemplate += `
+### Fixes${breakline}`;
       changesTemplate += changes["fix"].join(breakline);
     }
 
     if (changes["maintenance"]) {
-      changesTemplate += `### Maintenance${breakline}`;
+      changesTemplate += `
+### Maintenance${breakline}`;
       changesTemplate += changes["maintenance"].join(breakline);
     }
 
     if (changes[otherCategory]) {
-      changesTemplate += `### Changes${breakline}`;
+      changesTemplate += `
+### Changes${breakline}`;
       changesTemplate += changes[otherCategory].join(breakline);
     }
 
