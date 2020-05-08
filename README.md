@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: etcdigital/pull-request-changelog@1.0
+      - uses: etcdigital/pull-request-changelog@1.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 ```
