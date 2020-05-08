@@ -142,15 +142,18 @@ const postToGit = async (url, key, body) => {
     const options = {};
     options.listeners = {
       stdout: (data) => {
+        console.log({ stdout: data });
         myOutput = `${myOutput}${data.toString()}`;
       },
       stderr: (data) => {
+        console.log({ stderr: data });
         myError = `${myError}${data.toString()}`;
       },
     };
     // get diff between master and current branch
     await exec.exec(
-      `git log --no-merges origin/pr/${github.context.payload.pull_request.number} ^origin/master --pretty='format:%H %s'`,
+      // `git log --no-merges origin/pr/${github.context.payload.pull_request.number} ^origin/master --pretty='format:%H %s'`,
+      `git log --no-merges origin/pr/${github.context.payload.pull_request.number} --pretty='format:%H %s'`,
       [],
       options
     );
@@ -213,11 +216,11 @@ const postToGit = async (url, key, body) => {
     ].forEach((changeType) => {
       const groupedChanges = groupChangelog(changeType.changes);
       if (Object.keys(groupedChanges).length > 0) {
-        changesTemplate = `
+        changesTemplate = `\`\`\`markdown
 ${changesTemplate}
 
 ${changeType.title}${changesToTemplate(groupedChanges)}
-`;
+\`\`\``;
       }
     });
 
