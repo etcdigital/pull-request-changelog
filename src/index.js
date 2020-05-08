@@ -127,7 +127,7 @@ const getCategory = (prefix) => {
     const breakline = `
 
 `;
-    let changesTemplate = `\`\`\`markdown${breakline}`;
+    let changesTemplate = "";
 
     if (changes["feat"]) {
       changesTemplate += `### Features${breakline}`;
@@ -149,7 +149,7 @@ const getCategory = (prefix) => {
       changesTemplate += changes[otherCategory].join(breakline);
     }
 
-    changesTemplate += `\`\`\``;
+    console.log(changesTemplate);
 
     // we don't really need a result here...
     const content = await postToGit(URL, GITHUB_TOKEN, changesTemplate);
