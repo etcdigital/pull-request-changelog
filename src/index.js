@@ -104,10 +104,10 @@ const getCategory = (prefix) => {
       const hash = line.substr(0, 40);
       const { prefix, message } = prepareCommit(line.substr(41));
 
-      const hashLink = `\`[${hash.substr(
+      const hashLink = `([${hash.substr(
         0,
         7
-      )}](https://github.com/etcdigital/pull-request-changelog/pull/${prNumber}/commits/${hash})\``;
+      )}](https://github.com/etcdigital/pull-request-changelog/pull/${prNumber}/commits/${hash}));
       const prefixBold = prefix ? `**${prefix}** ` : "";
 
       const category = getCategory(prefix);
