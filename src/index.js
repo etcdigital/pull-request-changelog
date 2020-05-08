@@ -3,7 +3,10 @@ const exec = require("@actions/exec");
 const github = require("@actions/github");
 const core = require("@actions/core");
 
-const URL = github.context.payload.pull_request.comments_url;
+const pull_request = github.context.payload.pull_request;
+
+const PR_ID = pull_request.number;
+const URL = pull_request.comments_url;
 const GITHUB_TOKEN = core.getInput("token") || process.env.token;
 
 /**
@@ -40,20 +43,41 @@ const prepareCommit = (str) => {
   return { prefix, message };
 };
 
-const otherCategory = "other";
+const changesHeader = "changes";
 
-const categories = {
+const headers = {
   "feat:": "feat",
   "fix:": "fix",
 };
 
-const getCategory = (prefix) => {
-  const category = prefix ? categories[prefix] : otherCategory;
-  if (category) {
-    return category;
+const getHeader = (prefix) => {
+  const header = prefix ? headers[prefix] : changesHeader;
+  if (header) {
+    return header;
   }
-  return otherCategory;
+  return changesHeader;
 };
+
+const commitUrl = (hash) =>
+  `https://github.com/etcdigital/pull-request-changelog/pull/${PR_ID}/commits/${hash}`;
+
+const prepareOutput = (line) => {
+  const hash = line.substr(0, 40);
+  const { prefix, message } = prepareCommit(line.substr(41));
+
+  const hashLink = `([${hash.substr(0, 7)}](${commitUrl(hash)}))`;
+  const prefixBold = prefix ? `**${prefix}** ` : "";
+
+  const h = getHeader(prefix);
+  if (!changes[h]) {
+    changes[h] = [];
+  }
+
+  const showPrefix = h === changesHeader ? prefixBold : "";
+  changes[h].push(`- ${showPrefix}${message} ${hashLink}`);
+};
+
+const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pretty=oneline --no-abbrev-commit`;
 
 /**
  * Action core
@@ -64,16 +88,13 @@ const getCategory = (prefix) => {
       throw new Error("Missing auth thoken");
     }
     console.log("Generating changelog....");
-    // we'll use github cli to provide us with commit diff
-    // first we need to fetch the needed branches
+
     await exec.exec(
       "git fetch --no-tags --prune origin +refs/pull/*/head:refs/remotes/origin/pr/*"
     );
     await exec.exec(
       "git fetch --no-tags origin +refs/heads/*:refs/remotes/origin/*"
     );
-
-    const prNumber = github.context.payload.pull_request.number;
 
     // then we fetch the diff and grab the output
     let myOutput = "";
@@ -87,39 +108,18 @@ const getCategory = (prefix) => {
         myError = `${myError}${data.toString()}`;
       },
     };
-    // get diff between master and current branch
 
-    const getCommits = `git log --no-merges origin/pr/${prNumber} ^origin/master --pretty=oneline --no-abbrev-commit`;
+    // get diff between master and current branch
     await exec.exec(getCommits, [], options);
+
     // If there were errors, we throw it
     if (myError !== "") {
       throw new Error(myError);
     }
-    // output is quoted, so we need to remove the quotes and split it by \n to get each change
-    console.log({ myOutput });
 
     let changes = [];
 
-    myOutput.split("\n").forEach((line) => {
-      const hash = line.substr(0, 40);
-      const { prefix, message } = prepareCommit(line.substr(41));
-
-      const hashLink = `([${hash.substr(
-        0,
-        7
-      )}](https://github.com/etcdigital/pull-request-changelog/pull/${prNumber}/commits/${hash}))`;
-      const prefixBold = prefix ? `**${prefix}** ` : "";
-
-      const category = getCategory(prefix);
-      if (!changes[category]) {
-        changes[category] = [];
-      }
-      changes[category].push(
-        `- ${
-          category === otherCategory ? prefixBold : ""
-        }${message} ${hashLink}`
-      );
-    });
+    myOutput.split("\n").forEach(prepareOutput);
 
     const breakline = `
 `;
@@ -127,26 +127,23 @@ const getCategory = (prefix) => {
 
     if (changes["feat"]) {
       changesTemplate += `
-### ✨ Features${breakline}`;
+## ✨ Features${breakline}`;
       changesTemplate += changes["feat"].join(breakline);
     }
 
     if (changes["fix"]) {
       changesTemplate += `
-### 🐞 Fixes${breakline}`;
+## 🐞 Fixes${breakline}`;
       changesTemplate += changes["fix"].join(breakline);
     }
 
-    if (changes[otherCategory]) {
+    if (changes[changesHeader]) {
       changesTemplate += `
-### 📋 Changes${breakline}`;
-      changesTemplate += changes[otherCategory].join(breakline);
+## 📋 Changes${breakline}`;
+      changesTemplate += changes[changesHeader].join(breakline);
     }
 
-    console.log(changesTemplate);
-
-    // we don't really need a result here...
-    const content = await postToGit(URL, GITHUB_TOKEN, changesTemplate);
+    await postToGit(URL, GITHUB_TOKEN, changesTemplate);
     console.log("Changelog successfully posted");
   } catch (e) {
     console.log(e);
