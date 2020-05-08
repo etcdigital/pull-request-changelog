@@ -6,95 +6,6 @@ const core = require("@actions/core");
 const URL = github.context.payload.pull_request.comments_url;
 const GITHUB_TOKEN = core.getInput("token") || process.env.token;
 
-const isBreakingChange = (change) => {
-  const firstWord = change.split(" ")[0];
-  return (
-    change.includes(":boom:") ||
-    change.includes("BREAKING CHANGE") ||
-    change.includes("BREAKING_CHANGE") ||
-    firstWord.includes("!")
-  );
-};
-
-const isFeatChange = (change) => {
-  const firstWord = change.split(" ")[0];
-  return change.includes(":sparkles:") || firstWord.includes("feat");
-};
-
-const isFixesChange = (change) => {
-  const firstWord = change.split(" ")[0];
-  return change.includes(":bug:") || firstWord.includes("fix");
-};
-
-const isDevOpsChange = (change) => {
-  const firstWord = change.split(" ")[0];
-  return (
-    change.includes(":white_check_mark") ||
-    firstWord.includes("ci:") ||
-    firstWord.includes("build:") ||
-    firstWord.includes("test:")
-  );
-};
-
-/***
- * @param {String} changelog: String of changes, where every line is an entry in changelog
- * Changelog from git comes in string format, where every line
- * represents a valid contribution to the project. This functions takes
- * string changelog and groups all changes based on the first word in change
- * Example:
- * Input:
- * :bug: Fixed async behavior
- * :bug: Fix flickering on mobile
- * :sparkles: Add call me button
- *
- * Output:
- * {
- *   ':bug:': [':bug: Fixed async behavior', ':bug: Fix flickering on mobile']
- *   ':sparkles:' : [':sparkles: Add call me button']
- * }
- */
-const groupChangelog = (changelog) => {
-  let grouping = {};
-  // Split changelog on new lines
-  changelog.forEach((change) => {
-    // find the first word and group all changes by first word
-    const key = change.substring(0, change.indexOf(" "));
-    if (grouping[key] === undefined) {
-      grouping[key] = [];
-    }
-    grouping[key].push(change);
-  });
-  return grouping;
-};
-
-/**
- *
- * @param {Object} changes
- * Function takes objects grouped by keys and coverts them to concatinated string grouped by key
- * Example:
- * Input:
- * {
- *   ':bug:': [':bug: Fixed async behavior', ':bug: Fix flickering on mobile']
- *   ':sparkles:' : [':sparkles: Add call me button']
- * }
- * Output
- * ':bug: Fixed async behavior'
- * ':bug: Fix flickering on mobile'
- *
- * ':sparkles: Add call me button'
- */
-const changesToTemplate = (changes) => {
-  let output = "";
-  Object.keys(changes).forEach((key) => {
-    changes[key].forEach((change) => {
-      output = `${output}${change}
-`;
-    });
-    output = `${output}`;
-  });
-  return output;
-};
-
 /**
  *
  * @param {String} url: Url to post to (PR comments in git are treated as issues)
@@ -118,6 +29,35 @@ const postToGit = async (url, key, body) => {
   return content;
 };
 
+const prepareCommit = (str) => {
+  const dotsIndex = str.split(" ")[0].indexOf(":");
+  if (dotsIndex < 0) {
+    return { prefix: "", message: str };
+  }
+  const prefix = str.substr(0, dotsIndex + 1);
+  const message = str.substr(dotsIndex + 2);
+
+  return { prefix, message };
+};
+
+const categories = {
+  "feat:": "feat",
+  "fix:": "fix",
+  "ci:": "maintenance",
+  "test:": "maintenance",
+  "build:": "maintenance",
+};
+
+const otherCategory = "other";
+
+const getCategory = (prefix) => {
+  const category = prefix ? categories[prefix] : otherCategory;
+  if (category) {
+    return category;
+  }
+  return otherCategory;
+};
+
 /**
  * Action core
  */
@@ -136,6 +76,8 @@ const postToGit = async (url, key, body) => {
       "git fetch --no-tags origin +refs/heads/*:refs/remotes/origin/*"
     );
 
+    const prNumber = github.context.payload.pull_request.number;
+
     // then we fetch the diff and grab the output
     let myOutput = "";
     let myError = "";
@@ -149,82 +91,67 @@ const postToGit = async (url, key, body) => {
       },
     };
     // get diff between master and current branch
-    await exec.exec(
-      // `git log --no-merges origin/pr/${github.context.payload.pull_request.number} ^origin/master --pretty='format:%H %s'`,
-      `git log --no-merges origin/pr/${github.context.payload.pull_request.number} ^origin/master --pretty=oneline --no-abbrev-commit`,
-      [],
-      options
-    );
+
+    const getCommits = `git log --no-merges origin/pr/${prNumber} ^origin/master --pretty=oneline --no-abbrev-commit`;
+    await exec.exec(getCommits, [], options);
     // If there were errors, we throw it
     if (myError !== "") {
       throw new Error(myError);
     }
     // output is quoted, so we need to remove the quotes and split it by \n to get each change
     console.log({ myOutput });
-    const changes = myOutput.split("\n").map((c) => {
-      console.log({ c });
-      return c.substring(1, c.length - 1);
-    });
-    console.log({ changes });
 
-    const breakChanges = {
-      title: `### Breaking Changes
+    let changes = [];
 
-`,
-      changes: changes.filter((change) => isBreakingChange(change)),
-    };
+    myOutput.split("\n").forEach((line) => {
+      const hash = line.substr(0, 40);
+      const { prefix, message } = prepareCommit(line.substr(41));
 
-    const featChanges = {
-      title: `### Features
+      const hashLink = `[${hash.substr(
+        0,
+        7
+      )}](https://github.com/etcdigital/pull-request-changelog/pull/${prNumber}/commits/${hash})`;
+      const prefixBold = prefix ? `**${prefix}** ` : "";
 
-`,
-      changes: changes.filter((change) => isFeatChange(change)),
-    };
-
-    const fixesChanges = {
-      title: `### Features
-
-`,
-      changes: changes.filter((change) => isFixesChange(change)),
-    };
-
-    const devOpsChanges = {
-      title: `### DevOps
-
-`,
-      changes: changes.filter((change) => !isDevOpsChange(change)),
-    };
-
-    const otherChanges = {
-      title: `### Changes
-
-`,
-      changes: changes.filter(
-        (change) => !isBreakingChange(change) && !isFeatChange(change)
-      ),
-    };
-
-    let changesTemplate = "";
-    [
-      breakChanges,
-      featChanges,
-      fixesChanges,
-      devOpsChanges,
-      otherChanges,
-    ].forEach((changeType) => {
-      const groupedChanges = groupChangelog(changeType.changes);
-      if (Object.keys(groupedChanges).length > 0) {
-        changesTemplate = `\`\`\`markdown
-${changesTemplate}
-
-${changeType.title}${changesToTemplate(groupedChanges)}
-\`\`\``;
+      const category = getCategory(prefix);
+      if (!changes[category]) {
+        changes[category] = [];
       }
+      changes[category].push(
+        `(${hashLink}) ${
+          category !== otherCategory ? prefixBold : ""
+        }${message}`
+      );
     });
+
+    const changesTemplate = "```";
+    const breakline = `
+`;
+
+    if (changes["feat"]) {
+      changesTemplate += `### Features${breakline}`;
+      changesTemplate += changes["feat"].join(breakline);
+    }
+
+    if (changes["fix"]) {
+      changesTemplate += `### Fixes${breakline}`;
+      changesTemplate += changes["fix"].join(breakline);
+    }
+
+    if (changes["maintenance"]) {
+      changesTemplate += `### Maintenance${breakline}`;
+      changesTemplate += changes["maintenance"].join(breakline);
+    }
+
+    if (changes[otherCategory]) {
+      changesTemplate += `### Changes${breakline}`;
+      changesTemplate += changes[otherCategory].join(breakline);
+    }
+
+    changesTemplate += `\`\`\``;
 
     // we don't really need a result here...
     const content = await postToGit(URL, GITHUB_TOKEN, changesTemplate);
-    console.log(content);
     console.log("Changelog successfully posted");
   } catch (e) {
     console.log(e);
