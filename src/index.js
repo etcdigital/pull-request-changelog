@@ -123,7 +123,6 @@ const getCategory = (prefix) => {
     });
 
     const breakline = `
-
 `;
     let changesTemplate = "";
 
