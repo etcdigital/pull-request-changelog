@@ -128,25 +128,25 @@ const getCategory = (prefix) => {
 
     if (changes["feat"]) {
       changesTemplate += `
-### Features${breakline}`;
+## ⭐️Features${breakline}`;
       changesTemplate += changes["feat"].join(breakline);
     }
 
     if (changes["fix"]) {
       changesTemplate += `
-### Fixes${breakline}`;
+## 🐞Fixes${breakline}`;
       changesTemplate += changes["fix"].join(breakline);
     }
 
     if (changes["maintenance"]) {
       changesTemplate += `
-### Maintenance${breakline}`;
+## 🧰Maintenance${breakline}`;
       changesTemplate += changes["maintenance"].join(breakline);
     }
 
     if (changes[otherCategory]) {
       changesTemplate += `
-### Changes${breakline}`;
+## 📋Changes${breakline}`;
       changesTemplate += changes[otherCategory].join(breakline);
     }
 
