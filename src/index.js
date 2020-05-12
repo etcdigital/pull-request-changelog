@@ -2,20 +2,14 @@ const fetch = require("node-fetch");
 const exec = require("@actions/exec");
 const github = require("@actions/github");
 const core = require("@actions/core");
+const makeTemplate = require("./converter");
 
 const pull_request = github.context.payload.pull_request;
-
 const PR_ID = pull_request.number;
+const PR_URL = pull_request.html_url;
 const URL = pull_request.comments_url;
 const GITHUB_TOKEN = core.getInput("token") || process.env.token;
 
-/**
- *
- * @param {String} url: Url to post to (PR comments in git are treated as issues)
- * @param {String} key: Github token
- * @param {String} body: Text (HTML)
- * Output is API Response
- */
 const postToGit = async (url, key, body) => {
   const rawResponse = await fetch(url, {
     method: "POST",
@@ -32,57 +26,10 @@ const postToGit = async (url, key, body) => {
   return content;
 };
 
-const prepareCommit = (str) => {
-  const dotsIndex = str.split(" ")[0].indexOf(":");
-  if (dotsIndex < 0) {
-    return { prefix: "", message: str };
-  }
-  const prefix = str.substr(0, dotsIndex + 1);
-  const message = str.substr(dotsIndex + 2);
-
-  return { prefix, message };
-};
-
-const changesHeader = "changes";
-
-const headers = {
-  "feat:": "feat",
-  "fix:": "fix",
-};
-
-const getHeader = (prefix) => {
-  const header = prefix ? headers[prefix] : changesHeader;
-  if (header) {
-    return header;
-  }
-  return changesHeader;
-};
-
-const commitUrl = (hash) =>
-  `https://github.com/etcdigital/pull-request-changelog/pull/${PR_ID}/commits/${hash}`;
-
-let changes = [];
-
-const prepareOutput = (line) => {
-  const hash = line.substr(0, 40);
-  const { prefix, message } = prepareCommit(line.substr(41));
-
-  if (!prefix && !message) {
-    return;
-  }
-
-  const hashLink = `([${hash.substr(0, 7)}](${commitUrl(hash)}))`;
-  const prefixBold = prefix ? `**${prefix}** ` : "";
-
-  const h = getHeader(prefix);
-  if (!changes[h]) {
-    changes[h] = [];
-  }
-
-  const showPrefix = h === changesHeader ? prefixBold : "";
-  changes[h].push(`- ${showPrefix}${message} ${hashLink}`);
-};
-
+const gitPrume =
+  "git fetch --no-tags --prune origin +refs/pull/*/head:refs/remotes/origin/pr/*";
+const gitNoTag =
+  "git fetch --no-tags origin +refs/heads/*:refs/remotes/origin/*";
 const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pretty=oneline --no-abbrev-commit`;
 
 /**
@@ -95,20 +42,16 @@ const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pret
     }
     console.log("Generating changelog....");
 
-    await exec.exec(
-      "git fetch --no-tags --prune origin +refs/pull/*/head:refs/remotes/origin/pr/*"
-    );
-    await exec.exec(
-      "git fetch --no-tags origin +refs/heads/*:refs/remotes/origin/*"
-    );
+    await exec.exec(gitPrume);
+    await exec.exec(gitNoTag);
 
     // then we fetch the diff and grab the output
-    let myOutput = "";
+    let commits = "";
     let myError = "";
     const options = {};
     options.listeners = {
       stdout: (data) => {
-        myOutput = `${myOutput}${data.toString()}`;
+        commits = `${commits}${data.toString()}`;
       },
       stderr: (data) => {
         myError = `${myError}${data.toString()}`;
@@ -123,31 +66,7 @@ const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pret
       throw new Error(myError);
     }
 
-    myOutput.split("\n").forEach(prepareOutput);
-
-    const breakline = `
-`;
-    let changesTemplate = "";
-
-    if (changes["feat"]) {
-      changesTemplate += `
-## ✨ Features${breakline}`;
-      changesTemplate += changes["feat"].join(breakline);
-    }
-
-    if (changes["fix"]) {
-      changesTemplate += `
-## 🐞 Fixes${breakline}`;
-      changesTemplate += changes["fix"].join(breakline);
-    }
-
-    if (changes[changesHeader]) {
-      changesTemplate += `
-## 📋 Changes${breakline}`;
-      changesTemplate += changes[changesHeader].join(breakline);
-    }
-
-    await postToGit(URL, GITHUB_TOKEN, changesTemplate);
+    await postToGit(URL, GITHUB_TOKEN, makeTemplate(commits, PR_URL));
     console.log("Changelog successfully posted");
   } catch (e) {
     console.log(e);
