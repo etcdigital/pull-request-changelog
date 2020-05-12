@@ -28,6 +28,8 @@ const postToGit = async (url, key, body) => {
 const breakline = `
 `;
 
+let changes = [];
+
 const changesHeader = "changes";
 
 const headers = {
@@ -81,8 +83,6 @@ const getHeader = (prefix) => {
 
 const commitUrl = (hash) => `${PR_URL}/commits/${hash}`;
 
-let changes = [];
-
 const prepareOutput = (line) => {
   // Get Hash, prefix and message
   const hash = line.substr(0, 40);
@@ -111,7 +111,8 @@ const prepareOutput = (line) => {
   });
 };
 
-const prepareToShow = (items) => {
+const showList = (topic) => {
+  const items = changes[topic];
   const scopes = {};
   items.forEach(({ scope, message }) => {
     if (!scopes[scope]) {
@@ -128,7 +129,7 @@ const prepareToShow = (items) => {
     }
   });
   console.log(JSON.stringify(toReturn, null, 2), "-------end prepare");
-  return toReturn;
+  return toReturn.join(breakline);
 };
 
 const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pretty=oneline --no-abbrev-commit`;
@@ -178,19 +179,19 @@ const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pret
     if (changes["feat"]) {
       changesTemplate += `
 ## ✨ Features${breakline}`;
-      changesTemplate += prepareToShow(changes["feat"]).join(breakline);
+      changesTemplate += showList("feat");
     }
 
     if (changes["fix"]) {
       changesTemplate += `
 ## 🐞 Fixes${breakline}`;
-      changesTemplate += changes["fix"].join(breakline);
+      changesTemplate += showList("fix");
     }
 
     if (changes[changesHeader]) {
       changesTemplate += `
 ## 📋 Changes${breakline}`;
-      changesTemplate += changes[changesHeader].join(breakline);
+      changesTemplate += showList(changesHeader);
     }
 
     await postToGit(URL, GITHUB_TOKEN, changesTemplate);
