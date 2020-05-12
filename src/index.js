@@ -9,7 +9,6 @@ const PR_URL = pull_request.html_url;
 const URL = pull_request.comments_url;
 const GITHUB_TOKEN = core.getInput("token") || process.env.token;
 
-console.log(PR_URL);
 /**
  *
  * @param {String} url: Url to post to (PR comments in git are treated as issues)
@@ -59,8 +58,7 @@ const getHeader = (prefix) => {
   return changesHeader;
 };
 
-const commitUrl = (hash) =>
-  `https://github.com/etcdigital/pull-request-changelog/pull/${PR_ID}/commits/${hash}`;
+const commitUrl = (hash) => `${PR_URL}/commits/${hash}`;
 
 let changes = [];
 
