@@ -113,13 +113,21 @@ const prepareOutput = (line) => {
 
 const prepareToShow = (items) => {
   const scopes = {};
-  const toReturn = items.forEach(({ scope, message }) => {
+  items.forEach(({ scope, message }) => {
     if (!scopes[scope]) {
       scopes[scope] = [];
     }
     scopes[scope].push(message);
   });
-  console.log(JSON.stringify(scopes, null, 2), "-------end prepare");
+  const toReturn = Object.keys(scopes).forEach((key) => {
+    const joiner = scopes[key].join(breakline);
+    if (key === "no-scope") {
+      return `${breakline}${joiner}`;
+    } else {
+      return `${breakline}##### ${key}${breakline}${joiner}`;
+    }
+  });
+  console.log(JSON.stringify(toReturn, null, 2), "-------end prepare");
   return toReturn;
 };
 
