@@ -112,6 +112,7 @@ const prepareOutput = (line) => {
 };
 
 const prepareToShow = (items) => {
+  console.log(JSON.stringify(items, 0, 2));
   console.log("-------prepare");
   const keys = Object.keys(items);
   console.log(keys);
