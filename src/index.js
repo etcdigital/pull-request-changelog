@@ -112,15 +112,14 @@ const prepareOutput = (line) => {
 };
 
 const prepareToShow = (items) => {
-  console.log(JSON.stringify(items, 0, 2));
-  console.log("-------prepare");
-  const keys = Object.keys(items);
-  console.log(keys);
-  const toReturn = keys.map((key) => {
-    let str = `##### ${key}${breakline}`;
-    console.log({ str });
+  const scopes = {};
+  const toReturn = items.forEach(({ scope, message }) => {
+    if (!scopes[scope]) {
+      scopes[scope] = [];
+    }
+    scopes[scope].push(message);
   });
-  console.log("-------end prepare");
+  console.log(JSON.stringify(scopes, null, 2), "-------end prepare");
   return toReturn;
 };
 
