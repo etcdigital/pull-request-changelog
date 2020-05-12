@@ -9,13 +9,6 @@ const PR_URL = pull_request.html_url;
 const URL = pull_request.comments_url;
 const GITHUB_TOKEN = core.getInput("token") || process.env.token;
 
-/**
- *
- * @param {String} url: Url to post to (PR comments in git are treated as issues)
- * @param {String} key: Github token
- * @param {String} body: Text (HTML)
- * Output is API Response
- */
 const postToGit = async (url, key, body) => {
   const rawResponse = await fetch(url, {
     method: "POST",
@@ -32,16 +25,8 @@ const postToGit = async (url, key, body) => {
   return content;
 };
 
-const prepareCommit = (str) => {
-  const dotsIndex = str.split(" ")[0].indexOf(":");
-  if (dotsIndex < 0) {
-    return { prefix: "", message: str };
-  }
-  const prefix = str.substr(0, dotsIndex + 1);
-  const message = str.substr(dotsIndex + 2);
-
-  return { prefix, message };
-};
+const breakline = `
+`;
 
 const changesHeader = "changes";
 
@@ -49,6 +34,17 @@ const headers = {
   "feat:": "feat",
   "fix:": "fix",
   "docs:": "docs",
+};
+
+const prepareCommit = (str) => {
+  const dotsIndex = str.split(" ")[0].indexOf(":");
+  if (dotsIndex < 0) {
+    return { prefix: "", message: str };
+  }
+  const { prefix, scope } = getScope(str.substr(0, dotsIndex + 1));
+  const message = str.substr(dotsIndex + 2);
+
+  return { prefix, message, scope };
 };
 
 const getScope = (prefix) => {
@@ -69,14 +65,13 @@ const getScope = (prefix) => {
           scope = scopeSplited;
         }
       }
-      prefix: prefixStart;
+      prefix = prefixStart;
     }
   }
   return { scope, prefix };
 };
 
 const getHeader = (prefix) => {
-  console.log({ getScope: getScope(prefix) });
   const header = headers[prefix] || changesHeader;
   if (header) {
     return header;
@@ -91,7 +86,7 @@ let changes = [];
 const prepareOutput = (line) => {
   // Get Hash, prefix and message
   const hash = line.substr(0, 40);
-  const { prefix, message } = prepareCommit(line.substr(41));
+  const { prefix, scope, message } = prepareCommit(line.substr(41));
 
   // Check if commit has a valid message
   if (!prefix && !message) {
@@ -110,7 +105,22 @@ const prepareOutput = (line) => {
   const prefixBold = prefix ? `**${prefix}** ` : "";
 
   const showPrefix = h === changesHeader ? prefixBold : "";
-  changes[h].push(`- ${showPrefix}${message} ${hashLink}`);
+  changes[h].push({
+    scope: scope ? scope : "no-scope",
+    message: `- ${showPrefix}${message} ${hashLink}`,
+  });
+};
+
+const prepareToShow = (items) => {
+  console.log("-------prepare");
+  const keys = Object.keys(items);
+  console.log(keys);
+  const toReturn = keys.map((key) => {
+    let str = `##### ${key}${breakline}`;
+    console.log({ str });
+  });
+  console.log("-------end prepare");
+  return toReturn;
 };
 
 const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pretty=oneline --no-abbrev-commit`;
@@ -155,8 +165,6 @@ const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pret
 
     myOutput.split("\n").forEach(prepareOutput);
 
-    const breakline = `
-`;
     let changesTemplate = "";
 
     if (changes["feat"]) {
