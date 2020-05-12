@@ -4,11 +4,11 @@ const github = require("@actions/github");
 const core = require("@actions/core");
 
 const pull_request = github.context.payload.pull_request;
-
 const PR_ID = pull_request.number;
 const URL = pull_request.comments_url;
 const GITHUB_TOKEN = core.getInput("token") || process.env.token;
 
+console.log(github.context.payload);
 /**
  *
  * @param {String} url: Url to post to (PR comments in git are treated as issues)
