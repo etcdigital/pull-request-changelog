@@ -119,7 +119,7 @@ const prepareToShow = (items) => {
     }
     scopes[scope].push(message);
   });
-  const toReturn = Object.keys(scopes).forEach((key) => {
+  const toReturn = Object.keys(scopes).map((key) => {
     const joiner = scopes[key].join(breakline);
     if (key === "no-scope") {
       return `${breakline}${joiner}`;
