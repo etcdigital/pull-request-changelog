@@ -51,8 +51,31 @@ const headers = {
   "docs:": "docs",
 };
 
+const getScope = (prefix) => {
+  let scope = "";
+  if (!prefix) {
+    return { scope, prefix: changesHeader };
+  }
+  const parentesesStartIndex = prefix.indexOf("(");
+  if (parentesesStartIndex < 0) {
+    const parentesesEndIndex = prefix.indexOf(")");
+    if (parentesesEndIndex < 0) {
+      let prefixStart = prefix("(");
+      if (prefixStart[1]) {
+        scopeSplited = scopeSplited[1](")")[0];
+        if (scopeSplited) {
+          scope = scopeSplited;
+        }
+      }
+      prefix: prefixStart;
+    }
+  }
+  return { scope, prefix };
+};
+
 const getHeader = (prefix) => {
-  const header = prefix ? headers[prefix] : changesHeader;
+  console.log({ getScope: getScope(prefix) });
+  const header = headers[prefix] || changesHeader;
   if (header) {
     return header;
   }
@@ -75,13 +98,14 @@ const prepareOutput = (line) => {
 
   // Create a hash link
   const hashLink = `([${hash.substr(0, 7)}](${commitUrl(hash)}))`;
-  const prefixBold = prefix ? `**${prefix}** ` : "";
 
   // Prepare
   const h = getHeader(prefix);
   if (!changes[h]) {
-    changes[h] = [];
+    changes[h] = [{ noScope: [], scope: [] }];
   }
+
+  const prefixBold = prefix ? `**${prefix}** ` : "";
 
   const showPrefix = h === changesHeader ? prefixBold : "";
   changes[h].push(`- ${showPrefix}${message} ${hashLink}`);
