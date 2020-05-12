@@ -48,6 +48,7 @@ const changesHeader = "changes";
 const headers = {
   "feat:": "feat",
   "fix:": "fix",
+  "docs:": "docs",
 };
 
 const getHeader = (prefix) => {
