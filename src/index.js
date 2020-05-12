@@ -63,16 +63,20 @@ const commitUrl = (hash) => `${PR_URL}/commits/${hash}`;
 let changes = [];
 
 const prepareOutput = (line) => {
+  // Get Hash, prefix and message
   const hash = line.substr(0, 40);
   const { prefix, message } = prepareCommit(line.substr(41));
 
+  // Check if commit has a valid message
   if (!prefix && !message) {
     return;
   }
 
+  // Create a hash link
   const hashLink = `([${hash.substr(0, 7)}](${commitUrl(hash)}))`;
   const prefixBold = prefix ? `**${prefix}** ` : "";
 
+  // Prepare
   const h = getHeader(prefix);
   if (!changes[h]) {
     changes[h] = [];
