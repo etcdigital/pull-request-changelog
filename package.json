@@ -1,6 +1,6 @@
 {
   "name": "pull-request-changelog",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Github action that automatically generates changelog when PR is opened/updated",
   "main": "dist/index.js",
   "scripts": {
