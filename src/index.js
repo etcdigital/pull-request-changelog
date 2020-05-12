@@ -60,7 +60,7 @@ const getScope = (prefix) => {
   if (parentesesStartIndex < 0) {
     const parentesesEndIndex = prefix.indexOf(")");
     if (parentesesEndIndex < 0) {
-      let prefixStart = prefix("(");
+      let prefixStart = prefix.split("(");
       if (prefixStart[1]) {
         scopeSplited = scopeSplited[1](")")[0];
         if (scopeSplited) {
