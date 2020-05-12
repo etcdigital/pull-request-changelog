@@ -99,14 +99,14 @@ const prepareOutput = (line) => {
   // Prepare
   const h = getHeader(prefix);
   if (!changes[h]) {
-    changes[h] = [{ noScope: [], scope: [] }];
+    changes[h] = [];
   }
 
   const prefixBold = prefix ? `**${prefix}** ` : "";
 
   const showPrefix = h === changesHeader ? prefixBold : "";
   changes[h].push({
-    scope: scope ? scope : "no-scope",
+    scope: scope || "no-scope",
     message: `- ${showPrefix}${message} ${hashLink}`,
   });
 };
@@ -170,7 +170,7 @@ const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pret
     if (changes["feat"]) {
       changesTemplate += `
 ## ✨ Features${breakline}`;
-      changesTemplate += changes["feat"].join(breakline);
+      changesTemplate += prepareToShow(changes["feat"]).join(breakline);
     }
 
     if (changes["fix"]) {
