@@ -30,6 +30,6 @@
     "node-fetch": "^2.6.0"
   },
   "devDependencies": {
-    "@zeit/ncc": "^0.22.1"
+    "@zeit/ncc": "^0.22.2"
   }
 }
