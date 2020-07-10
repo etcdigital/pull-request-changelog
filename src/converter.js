@@ -56,8 +56,6 @@ const getHeader = (prefix) => {
   return changesHeader;
 };
 
-const commitUrl = (hash) => `${PR_URL}/commits/${hash}`;
-
 const prepareOutput = (sha, contentLine) => {
   const messageLine = contentLine.message;
   const filesLine = contentLine.files;
@@ -69,9 +67,6 @@ const prepareOutput = (sha, contentLine) => {
   if (!prefix && !message) {
     return;
   }
-
-  // Create a hash link
-  const hashLink = `([${sha.substr(0, 7)}](${commitUrl(sha)}))`;
 
   // Prepare
   const h = getHeader(prefix);
@@ -87,7 +82,8 @@ const prepareOutput = (sha, contentLine) => {
   changes[h].push({
     scope: scope || "no-scope",
     message: `<details>
-    <summary>${sha.substr(0, 7)} - ${showPrefix}${message} ${hashLink}</summary>
+    <summary>${sha.substr(0, 7)} - ${showPrefix}${message}</summary>
+    #### Changed files:
     ${changedFiles.join("\n")}
   </details>`,
   });
