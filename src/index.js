@@ -51,7 +51,13 @@ const postToGit = async (url, key, body) => {
         stdout: (data) => {
           const splitted = data.toString().split("\n");
           splitted.forEach((item) => {
+            if (item === "") {
+              return;
+            }
             const sha = item.substr(0, 40);
+            if (sha === "") {
+              return;
+            }
             const message = item.substr(41);
             commits[sha] = { message };
           });
@@ -72,13 +78,14 @@ const postToGit = async (url, key, body) => {
 
     console.log({ commits });
 
-    const shaKeys = Object.key(commits).map(
+    const shaKeys = Object.keys(commits).map(
       (sha) =>
         new Promise((resolve, reject) => {
           exec.exec(changeFiles(sha), [], {
             listeners: {
               stdout: (data) => {
                 console.log(data.toString());
+                resolve();
               },
               stderr: (data) => {
                 myError = `${myError}${data.toString()}`;
