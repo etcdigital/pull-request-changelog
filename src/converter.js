@@ -15,6 +15,14 @@ const headers = {
   "refactor:": "refactor",
 };
 
+const getHeader = (prefix) => {
+  const header = headers[prefix] || changesHeader;
+  if (header) {
+    return header;
+  }
+  return changesHeader;
+};
+
 const prepareCommit = (str) => {
   const dotsIndex = str.split(" ")[0].indexOf(":");
   if (dotsIndex < 0) {
@@ -48,14 +56,6 @@ const getScope = (prefix) => {
   return { scope, prefix };
 };
 
-const getHeader = (prefix) => {
-  const header = headers[prefix] || changesHeader;
-  if (header) {
-    return header;
-  }
-  return changesHeader;
-};
-
 const prepareOutput = (sha, contentLine) => {
   const messageLine = contentLine.message;
   const filesLine = contentLine.files;
@@ -71,18 +71,19 @@ const prepareOutput = (sha, contentLine) => {
   // Prepare
   const h = getHeader(prefix);
   if (!changes[h]) {
-    changes[h] = [];
+    changes[h] = {
+      [prefix || "--"]: [],
+    };
   }
 
-  const prefixBold = prefix ? `**${prefix}** ` : "";
+  const prefixkey = prefix | "--";
 
   const changedFiles = filesLine.map((file) => `- ${file}`);
 
-  const showPrefix = h === changesHeader ? prefixBold : "";
-  changes[h].push({
+  changes[h][prefixkey].push({
     scope: scope || "no-scope",
     message: `<details>
-    <summary>${sha.substr(0, 7)} - ${showPrefix}${message}</summary>
+    <summary>${sha.substr(0, 7)} ${message}</summary>
     ${breakline}#### Changed files${breakline}
     ${changedFiles.join("\n")}
   </details>`,
@@ -98,8 +99,14 @@ const showList = (topic) => {
     }
     scopes[scope].push(message);
   });
+
   const toReturn = Object.keys(scopes).map((key) => {
-    const joiner = scopes[key].join(breakline);
+    const innerKeys = Objects.keys(scopes[key]).map((innerKey) =>
+      scopes[key][innerKey].join("breakline")
+    );
+
+    const joiner = innerKeys[key].join(breakline);
+
     if (key === "no-scope") {
       return `${breakline}${joiner}`;
     } else {
