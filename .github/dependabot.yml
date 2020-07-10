@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    assignees:
+      - "etc-tiago"
+    reviewers:
+      - "etc-tiago"
+    labels:
+      - "dependencies"
+
+  - package-ecosystem: "npm"
+    package_manager: "javascript"
+    directory: "/"
+    open-pull-requests-limit: 1
+    schedule:
+      interval: "daily"
+    assignees:
+      - "etc-tiago"
+    reviewers:
+      - "etc-tiago"
+    labels:
+      - "dependencies"
