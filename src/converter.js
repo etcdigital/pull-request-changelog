@@ -114,7 +114,7 @@ const showList = (topic) => {
 
 module.exports = function MakeTemplate(commits, pullRequestUrl = "") {
   PR_URL = pullRequestUrl;
-  commits.forEach((sha) => prepareOutput(sha, commits[sha]));
+  Object.keys(commits).forEach((sha) => prepareOutput(sha, commits[sha]));
 
   let changesTemplate = "";
 
