@@ -82,7 +82,6 @@ const postToGit = async (url, key, body) => {
           exec.exec(changeFiles(sha), [], {
             listeners: {
               stdout: (data) => {
-                console.log(data.toString());
                 commits[sha].files = data
                   .toString()
                   .split("\n")
