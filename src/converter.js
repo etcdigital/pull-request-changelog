@@ -72,7 +72,7 @@ const prepareOutput = (sha, contentLine) => {
   const h = getHeader(prefix);
   console.log({ h });
   const prefixkey = prefix | "--";
-  console.log({ hprefixkey });
+  console.log({ prefixkey });
   if (!changes[h]) {
     changes[h] = {
       [prefixkey]: [],
