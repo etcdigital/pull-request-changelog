@@ -86,8 +86,8 @@ const prepareOutput = (sha, contentLine) => {
   const showPrefix = h === changesHeader ? prefixBold : "";
   changes[h].push({
     scope: scope || "no-scope",
-    message: `- ${showPrefix}${message} ${hashLink}<details>
-    <summary>Changed files</summary>
+    message: `<details>
+    <summary>${showPrefix}${message} ${hashLink}</summary>
     ${changedFiles.join("\n")}
   </details>`,
   });
