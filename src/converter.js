@@ -128,7 +128,7 @@ module.exports = function MakeTemplate(commits, pullRequestUrl = "") {
 
   const separator = () => {
     if (changesTemplate) {
-      changesTemplate += `${breakline}---${breakline}`;
+      changesTemplate += `${breakline}${breakline}`;
     }
   };
 
