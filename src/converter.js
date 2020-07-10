@@ -12,6 +12,7 @@ const headers = {
   "docs:": "docs",
   "ci:": "ci",
   "test:": "test",
+  "refactor:": "refactor",
 };
 
 const prepareCommit = (str) => {
@@ -155,7 +156,14 @@ module.exports = function MakeTemplate(commits, pullRequestUrl = "") {
   if (changes["test"]) {
     separator();
     doubleBreakline();
-    changesTemplate += `## 🏗 Test${breakline}`;
+    changesTemplate += `## 🧪 Tests${breakline}`;
+    changesTemplate += showList("fix");
+  }
+
+  if (changes["refactor"]) {
+    separator();
+    doubleBreakline();
+    changesTemplate += `## ♻️ Refactors${breakline}`;
     changesTemplate += showList("fix");
   }
 
