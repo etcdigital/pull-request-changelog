@@ -70,7 +70,9 @@ const prepareOutput = (sha, contentLine) => {
 
   // Prepare
   const h = getHeader(prefix);
+  console.log({ h });
   const prefixkey = prefix | "--";
+  console.log({ hprefixkey });
   if (!changes[h]) {
     changes[h] = {
       [prefixkey]: [],
@@ -78,7 +80,6 @@ const prepareOutput = (sha, contentLine) => {
   }
 
   console.log({ changes });
-  console.log({ changesH: changes[h] });
 
   const changedFiles = filesLine.map((file) => `- ${file}`);
 
