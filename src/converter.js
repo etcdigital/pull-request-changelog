@@ -57,10 +57,12 @@ const getHeader = (prefix) => {
 
 const commitUrl = (hash) => `${PR_URL}/commits/${hash}`;
 
-const prepareOutput = (line) => {
+const prepareOutput = (sha, contentLine) => {
+  const messageLine = contentLine.message;
+  const filesLine = contentLine.files;
+
   // Get Hash, prefix and message
-  const hash = line.substr(0, 40);
-  const { prefix, scope, message } = prepareCommit(line.substr(41));
+  const { prefix, scope, message } = prepareCommit(messageLine);
 
   // Check if commit has a valid message
   if (!prefix && !message) {
@@ -68,7 +70,7 @@ const prepareOutput = (line) => {
   }
 
   // Create a hash link
-  const hashLink = `([${hash.substr(0, 7)}](${commitUrl(hash)}))`;
+  const hashLink = `([${sha.substr(0, 7)}](${commitUrl(sha)}))`;
 
   // Prepare
   const h = getHeader(prefix);
@@ -78,10 +80,15 @@ const prepareOutput = (line) => {
 
   const prefixBold = prefix ? `**${prefix}** ` : "";
 
+  const changedFiles = filesLine.map((file) => `- ${file}`);
+
   const showPrefix = h === changesHeader ? prefixBold : "";
   changes[h].push({
     scope: scope || "no-scope",
-    message: `- ${showPrefix}${message} ${hashLink}`,
+    message: `- ${showPrefix}${message} ${hashLink}<details>
+    <summary>Changed files</summary>
+    ${changedFiles.join("\n")}
+  </details>`,
   });
 };
 
@@ -107,7 +114,7 @@ const showList = (topic) => {
 
 module.exports = function MakeTemplate(commits, pullRequestUrl = "") {
   PR_URL = pullRequestUrl;
-  commits.split("\n").forEach(prepareOutput);
+  commits.forEach((sha) => prepareOutput(sha, commits[sha]));
 
   let changesTemplate = "";
 
