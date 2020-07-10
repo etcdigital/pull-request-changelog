@@ -3,6 +3,7 @@ const exec = require("@actions/exec");
 const github = require("@actions/github");
 const core = require("@actions/core");
 const makeTemplate = require("./converter");
+const {gitNoTag,changeFiles,getCommits,gitPrume} = require("./commands");
 
 const pull_request = github.context.payload.pull_request;
 const PR_ID = pull_request.number;
@@ -26,12 +27,6 @@ const postToGit = async (url, key, body) => {
   return content;
 };
 
-const gitPrume =
-  "git fetch --no-tags --prune origin +refs/pull/*/head:refs/remotes/origin/pr/*";
-const gitNoTag =
-  "git fetch --no-tags origin +refs/heads/*:refs/remotes/origin/*";
-const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pretty=oneline --no-abbrev-commit`;
-
 /**
  * Action core
  */
@@ -51,6 +46,7 @@ const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pret
     const options = {};
     options.listeners = {
       stdout: (data) => {
+        console.log('show what is stdout', {data,dtStr = data.toString()})
         commits = `${commits}${data.toString()}`;
       },
       stderr: (data) => {
@@ -59,7 +55,7 @@ const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pret
     };
 
     // get diff between master and current branch
-    await exec.exec(getCommits, [], options);
+    await exec.exec(getCommits(PR_ID), [], options);
 
     // If there were errors, we throw it
     if (myError !== "") {
