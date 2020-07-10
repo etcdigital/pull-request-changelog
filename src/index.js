@@ -76,8 +76,6 @@ const postToGit = async (url, key, body) => {
       throw new Error(myError);
     }
 
-    console.log({ commits });
-
     const shaKeys = Object.keys(commits).map(
       (sha) =>
         new Promise((resolve, reject) => {
@@ -85,7 +83,10 @@ const postToGit = async (url, key, body) => {
             listeners: {
               stdout: (data) => {
                 console.log(data.toString());
-                commits[sha].files = data.toString();
+                commits[sha].files = data
+                  .toString()
+                  .split("\n")
+                  .filter((i) => i);
                 resolve();
               },
               stderr: (data) => {
@@ -95,6 +96,8 @@ const postToGit = async (url, key, body) => {
           });
         })
     );
+
+    console.log({ commits });
 
     await Promise.all(shaKeys);
 
