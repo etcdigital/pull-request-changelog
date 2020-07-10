@@ -41,28 +41,56 @@ const postToGit = async (url, key, body) => {
     await exec.exec(gitNoTag);
 
     // then we fetch the diff and grab the output
-    let commits = "";
+    let commits = {};
+    let commitsStr = "";
     let myError = "";
-    const options = {};
-    options.listeners = {
-      stdout: (data) => {
-        console.log("show what is stdout", { data, dtStr: data.toString() });
-        commits = `${commits}${data.toString()}`;
-      },
-      stderr: (data) => {
-        myError = `${myError}${data.toString()}`;
-      },
-    };
 
     // get diff between master and current branch
-    await exec.exec(getCommits(PR_ID), [], options);
+    await exec.exec(getCommits(PR_ID), [], {
+      listeners: {
+        stdout: (data) => {
+          const splitted = data.toString().split("\n");
+          splitted.forEach((item) => {
+            const sha = item.substr(0, 40);
+            const message = item.substr(41);
+            commits[sha] = { message };
+          });
+
+          // remove
+          commitsStr = `${commitsStr}${data.toString()}`;
+        },
+        stderr: (data) => {
+          myError = `${myError}${data.toString()}`;
+        },
+      },
+    });
 
     // If there were errors, we throw it
     if (myError !== "") {
       throw new Error(myError);
     }
 
-    await postToGit(URL, GITHUB_TOKEN, makeTemplate(commits, PR_URL));
+    console.log({ commits });
+
+    const shaKeys = Object.key(commits).map(
+      (sha) =>
+        new Promise((resolve, reject) => {
+          exec.exec(changeFiles(sha), [], {
+            listeners: {
+              stdout: (data) => {
+                console.log(data.toString());
+              },
+              stderr: (data) => {
+                myError = `${myError}${data.toString()}`;
+              },
+            },
+          });
+        })
+    );
+
+    await Promise.all(shaKeys);
+
+    await postToGit(URL, GITHUB_TOKEN, makeTemplate(commitsStr, PR_URL));
     console.log("Changelog successfully posted");
   } catch (e) {
     console.log(e);
