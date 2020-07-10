@@ -3,7 +3,7 @@ const exec = require("@actions/exec");
 const github = require("@actions/github");
 const core = require("@actions/core");
 const makeTemplate = require("./converter");
-const {gitNoTag,changeFiles,getCommits,gitPrume} = require("./commands");
+const { gitNoTag, changeFiles, getCommits, gitPrume } = require("./commands");
 
 const pull_request = github.context.payload.pull_request;
 const PR_ID = pull_request.number;
@@ -46,7 +46,7 @@ const postToGit = async (url, key, body) => {
     const options = {};
     options.listeners = {
       stdout: (data) => {
-        console.log('show what is stdout', {data,dtStr = data.toString()})
+        console.log("show what is stdout", { data, dtStr: data.toString() });
         commits = `${commits}${data.toString()}`;
       },
       stderr: (data) => {
