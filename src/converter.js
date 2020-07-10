@@ -83,7 +83,8 @@ const prepareOutput = (sha, contentLine) => {
     scope: scope || "no-scope",
     message: `<details>
     <summary>${sha.substr(0, 7)} - ${showPrefix}${message}</summary>
-    #### Changed files${breakline}${changedFiles.join("\n")}
+    ${breakline}#### Changed files${breakline}
+    ${changedFiles.join("\n")}
   </details>`,
   });
 };
