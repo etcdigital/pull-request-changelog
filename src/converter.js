@@ -10,6 +10,8 @@ const headers = {
   "feat:": "feat",
   "fix:": "fix",
   "docs:": "docs",
+  "ci:": "ci",
+  "test:": "test",
 };
 
 const prepareCommit = (str) => {
@@ -133,6 +135,20 @@ module.exports = function MakeTemplate(commits, pullRequestUrl = "") {
     separator();
     doubleBreakline();
     changesTemplate += `## 🐞 Fixes${breakline}`;
+    changesTemplate += showList("fix");
+  }
+
+  if (changes["ci"]) {
+    separator();
+    doubleBreakline();
+    changesTemplate += `## 🏗 CI${breakline}`;
+    changesTemplate += showList("fix");
+  }
+
+  if (changes["test"]) {
+    separator();
+    doubleBreakline();
+    changesTemplate += `## 🏗 Test${breakline}`;
     changesTemplate += showList("fix");
   }
 

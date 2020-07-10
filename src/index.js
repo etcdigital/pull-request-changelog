@@ -85,6 +85,7 @@ const postToGit = async (url, key, body) => {
             listeners: {
               stdout: (data) => {
                 console.log(data.toString());
+                commits[sha].files = data.toString();
                 resolve();
               },
               stderr: (data) => {
