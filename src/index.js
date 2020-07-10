@@ -3,6 +3,7 @@ const exec = require("@actions/exec");
 const github = require("@actions/github");
 const core = require("@actions/core");
 const makeTemplate = require("./converter");
+const { gitNoTag, changeFiles, getCommits, gitPrume } = require("./commands");
 
 const pull_request = github.context.payload.pull_request;
 const PR_ID = pull_request.number;
@@ -26,12 +27,6 @@ const postToGit = async (url, key, body) => {
   return content;
 };
 
-const gitPrume =
-  "git fetch --no-tags --prune origin +refs/pull/*/head:refs/remotes/origin/pr/*";
-const gitNoTag =
-  "git fetch --no-tags origin +refs/heads/*:refs/remotes/origin/*";
-const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pretty=oneline --no-abbrev-commit`;
-
 /**
  * Action core
  */
@@ -46,28 +41,64 @@ const getCommits = `git log --no-merges origin/pr/${PR_ID} ^origin/master --pret
     await exec.exec(gitNoTag);
 
     // then we fetch the diff and grab the output
-    let commits = "";
+    let commits = {};
+    let commitsStr = "";
     let myError = "";
-    const options = {};
-    options.listeners = {
-      stdout: (data) => {
-        commits = `${commits}${data.toString()}`;
-      },
-      stderr: (data) => {
-        myError = `${myError}${data.toString()}`;
-      },
-    };
 
     // get diff between master and current branch
-    await exec.exec(getCommits, [], options);
+    await exec.exec(getCommits(PR_ID), [], {
+      listeners: {
+        stdout: (data) => {
+          const splitted = data.toString().split("\n");
+          splitted.forEach((item) => {
+            if (item === "") {
+              return;
+            }
+            const sha = item.substr(0, 40);
+            if (sha === "") {
+              return;
+            }
+            const message = item.substr(41);
+            commits[sha] = { message };
+          });
+
+          // remove
+          commitsStr = `${commitsStr}${data.toString()}`;
+        },
+        stderr: (data) => {
+          myError = `${myError}${data.toString()}`;
+        },
+      },
+    });
 
     // If there were errors, we throw it
     if (myError !== "") {
       throw new Error(myError);
     }
 
+    const shaKeys = Object.keys(commits).map(
+      (sha) =>
+        new Promise((resolve, reject) => {
+          exec.exec(changeFiles(sha), [], {
+            listeners: {
+              stdout: (data) => {
+                commits[sha].files = data
+                  .toString()
+                  .split("\n")
+                  .filter((i) => i);
+                resolve();
+              },
+              stderr: (data) => {
+                myError = `${myError}${data.toString()}`;
+              },
+            },
+          });
+        })
+    );
+
+    await Promise.all(shaKeys);
+
     await postToGit(URL, GITHUB_TOKEN, makeTemplate(commits, PR_URL));
-    console.log("Changelog successfully posted");
   } catch (e) {
     console.log(e);
     process.exit(1);

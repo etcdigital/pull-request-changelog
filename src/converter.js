@@ -10,6 +10,9 @@ const headers = {
   "feat:": "feat",
   "fix:": "fix",
   "docs:": "docs",
+  "ci:": "ci",
+  "test:": "test",
+  "refactor:": "refactor",
 };
 
 const prepareCommit = (str) => {
@@ -18,7 +21,7 @@ const prepareCommit = (str) => {
     return { prefix: "", message: str };
   }
   const { prefix, scope } = getScope(str.substr(0, dotsIndex + 1));
-  const message = str.substr(dotsIndex + 2);
+  const message = str.substr(dotsIndex + 1).trim();
 
   return { prefix, message, scope };
 };
@@ -53,20 +56,17 @@ const getHeader = (prefix) => {
   return changesHeader;
 };
 
-const commitUrl = (hash) => `${PR_URL}/commits/${hash}`;
+const prepareOutput = (sha, contentLine) => {
+  const messageLine = contentLine.message;
+  const filesLine = contentLine.files;
 
-const prepareOutput = (line) => {
   // Get Hash, prefix and message
-  const hash = line.substr(0, 40);
-  const { prefix, scope, message } = prepareCommit(line.substr(41));
+  const { prefix, scope, message } = prepareCommit(messageLine);
 
   // Check if commit has a valid message
   if (!prefix && !message) {
     return;
   }
-
-  // Create a hash link
-  const hashLink = `([${hash.substr(0, 7)}](${commitUrl(hash)}))`;
 
   // Prepare
   const h = getHeader(prefix);
@@ -76,10 +76,16 @@ const prepareOutput = (line) => {
 
   const prefixBold = prefix ? `**${prefix}** ` : "";
 
+  const changedFiles = filesLine.map((file) => `- ${file}`);
+
   const showPrefix = h === changesHeader ? prefixBold : "";
   changes[h].push({
     scope: scope || "no-scope",
-    message: `- ${showPrefix}${message} ${hashLink}`,
+    message: `<details>
+    <summary>${sha.substr(0, 7)} - ${showPrefix}${message}</summary>
+    ${breakline}#### Changed files${breakline}
+    ${changedFiles.join("\n")}
+  </details>`,
   });
 };
 
@@ -105,7 +111,7 @@ const showList = (topic) => {
 
 module.exports = function MakeTemplate(commits, pullRequestUrl = "") {
   PR_URL = pullRequestUrl;
-  commits.split("\n").forEach(prepareOutput);
+  Object.keys(commits).forEach((sha) => prepareOutput(sha, commits[sha]));
 
   let changesTemplate = "";
 
@@ -118,7 +124,7 @@ module.exports = function MakeTemplate(commits, pullRequestUrl = "") {
 
   const separator = () => {
     if (changesTemplate) {
-      changesTemplate += `${breakline}---${breakline}`;
+      changesTemplate += `${breakline}${breakline}`;
     }
   };
 
@@ -133,6 +139,27 @@ module.exports = function MakeTemplate(commits, pullRequestUrl = "") {
     separator();
     doubleBreakline();
     changesTemplate += `## 🐞 Fixes${breakline}`;
+    changesTemplate += showList("fix");
+  }
+
+  if (changes["ci"]) {
+    separator();
+    doubleBreakline();
+    changesTemplate += `## 🏗 CI${breakline}`;
+    changesTemplate += showList("fix");
+  }
+
+  if (changes["test"]) {
+    separator();
+    doubleBreakline();
+    changesTemplate += `## 🧪 Tests${breakline}`;
+    changesTemplate += showList("fix");
+  }
+
+  if (changes["refactor"]) {
+    separator();
+    doubleBreakline();
+    changesTemplate += `## ♻️ Refactors${breakline}`;
     changesTemplate += showList("fix");
   }
 
