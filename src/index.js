@@ -98,10 +98,7 @@ const postToGit = async (url, key, body) => {
 
     await Promise.all(shaKeys);
 
-    console.log({ commits });
-
     await postToGit(URL, GITHUB_TOKEN, makeTemplate(commits, PR_URL));
-    console.log("Changelog successfully posted");
   } catch (e) {
     console.log(e);
     process.exit(1);
