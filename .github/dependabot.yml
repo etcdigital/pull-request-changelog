@@ -12,7 +12,6 @@ updates:
       - "dependencies"
 
   - package-ecosystem: "npm"
-    package_manager: "javascript"
     directory: "/"
     open-pull-requests-limit: 1
     schedule:
