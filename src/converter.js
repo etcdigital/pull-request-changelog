@@ -21,7 +21,7 @@ const prepareCommit = (str) => {
     return { prefix: "", message: str };
   }
   const { prefix, scope } = getScope(str.substr(0, dotsIndex + 1));
-  const message = str.substr(dotsIndex + 2);
+  const message = str.substr(dotsIndex + 1).trim();
 
   return { prefix, message, scope };
 };
@@ -87,7 +87,7 @@ const prepareOutput = (sha, contentLine) => {
   changes[h].push({
     scope: scope || "no-scope",
     message: `<details>
-    <summary>${showPrefix}${message} ${hashLink}</summary>
+    <summary>${sha.substr(0, 7)} - ${showPrefix}${message} ${hashLink}</summary>
     ${changedFiles.join("\n")}
   </details>`,
   });
