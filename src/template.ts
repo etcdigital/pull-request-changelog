@@ -55,9 +55,9 @@ export default function MakeTemplate(commits): string {
     changesTemplate.push(getMarkdownOfHead('## 🐞 Fixes', fixLogs));
   }
 
-  const ciLogs = changes['ci'];
-  if (ciLogs) {
-    changesTemplate.push(getMarkdownOfHead('## 🏗 CI', ciLogs));
+  const refactorLogs = changes['refactor'];
+  if (refactorLogs) {
+    changesTemplate.push(getMarkdownOfHead('## ♻️ Refactors', refactorLogs));
   }
 
   let testLogs = changes['test'];
@@ -65,9 +65,9 @@ export default function MakeTemplate(commits): string {
     changesTemplate.push(getMarkdownOfHead('## 🧪 Tests$', testLogs));
   }
 
-  const refactorLogs = changes['refactor'];
-  if (refactorLogs) {
-    changesTemplate.push(getMarkdownOfHead('## ♻️ Refactors', refactorLogs));
+  const ciLogs = changes['ci'];
+  if (ciLogs) {
+    changesTemplate.push(getMarkdownOfHead('## 🏗 CI', ciLogs));
   }
 
   const changesLogs = changes[changesHeader];
