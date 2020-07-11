@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
-import exec from '@actions/exec';
-import github from '@actions/github';
-import core from '@actions/core';
+import { exec } from '@actions/exec';
+import * as github from '@actions/github';
+import * as core from '@actions/core';
 import makeTemplate from './template';
 import { gitNoTag, changeFiles, getCommits, gitPrume } from './commands';
 
@@ -36,8 +36,8 @@ const postToGit = async (url, key, body) => {
     }
     console.log('Generating changelog....');
 
-    await exec.exec(gitPrume);
-    await exec.exec(gitNoTag);
+    await exec(gitPrume);
+    await exec(gitNoTag);
 
     // then we fetch the diff and grab the output
     let commits = {};
@@ -45,7 +45,7 @@ const postToGit = async (url, key, body) => {
     let myError = '';
 
     // get diff between master and current branch
-    await exec.exec(getCommits(PR_ID), [], {
+    await exec(getCommits(PR_ID), [], {
       listeners: {
         stdout: (data) => {
           const splitted = data.toString().split('\n');
@@ -78,7 +78,7 @@ const postToGit = async (url, key, body) => {
     const shaKeys = Object.keys(commits).map(
       (sha) =>
         new Promise((resolve, reject) => {
-          exec.exec(changeFiles(sha), [], {
+          exec(changeFiles(sha), [], {
             listeners: {
               stdout: (data) => {
                 commits[sha].files = data
