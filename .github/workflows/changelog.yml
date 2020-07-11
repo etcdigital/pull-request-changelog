@@ -16,8 +16,9 @@ jobs:
           node-version: "12.x"
       - name: Dependency installer
         run: yarn install
+      - name: Build Ts
+        run: ./node_modules/.bin/tsc ./src/index.ts -outDir ./run
       - name: Changelog Generator
-        id: changelogGen
-        run: yarn changelog
+        run: node ./run/index.js
         env:
           token: ${{ secrets.GITHUB_TOKEN }}
