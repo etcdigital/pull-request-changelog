@@ -35,7 +35,7 @@ const prepareOutput = (sha, contentObject) => {
     message: `<details>
     <summary>${sha.substr(0, 7)} - ${showPrefix}${message}</summary>
     ${breakline}#### Changed files${breakline}
-    ${contentObject.files.map((file) => `- ${file}`).join('\n')}
+${contentObject.files.map((file) => `- ${file}`).join('\n')}
   </details>`,
   });
 };
