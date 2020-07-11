@@ -29,9 +29,7 @@ const prepareOutput = (sha, contentObject) => {
     changes[h] = [];
   }
 
-  const prefixBold = prefix ? `**${prefix}** ` : '';
-
-  const showPrefix = h === changesHeader ? prefixBold : '';
+  const showPrefix = h === changesHeader ? prefix : '';
   changes[h].push({
     scope: heading || 'no-scope',
     message: `<details>
