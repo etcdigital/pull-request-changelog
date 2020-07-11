@@ -1,22 +1,21 @@
-const fetch = require("node-fetch");
-const exec = require("@actions/exec");
-const github = require("@actions/github");
-const core = require("@actions/core");
-const makeTemplate = require("./converter");
-const { gitNoTag, changeFiles, getCommits, gitPrume } = require("./commands");
+import fetch from 'node-fetch';
+import { exec } from '@actions/exec';
+import * as github from '@actions/github';
+import * as core from '@actions/core';
+import makeTemplate from './template';
+import { gitNoTag, changeFiles, getCommits, gitPrume } from './commands';
 
 const pull_request = github.context.payload.pull_request;
 const PR_ID = pull_request.number;
-const PR_URL = pull_request.html_url;
 const URL = pull_request.comments_url;
-const GITHUB_TOKEN = core.getInput("token") || process.env.token;
+const GITHUB_TOKEN = core.getInput('token') || process.env.token;
 
 const postToGit = async (url, key, body) => {
   const rawResponse = await fetch(url, {
-    method: "POST",
+    method: 'POST',
     headers: {
       Authorization: `token ${key}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({ body }),
   });
@@ -33,29 +32,29 @@ const postToGit = async (url, key, body) => {
 (async () => {
   try {
     if (GITHUB_TOKEN === undefined) {
-      throw new Error("Missing auth thoken");
+      throw new Error('Missing auth thoken');
     }
-    console.log("Generating changelog....");
+    console.log('Generating changelog....');
 
-    await exec.exec(gitPrume);
-    await exec.exec(gitNoTag);
+    await exec(gitPrume);
+    await exec(gitNoTag);
 
     // then we fetch the diff and grab the output
     let commits = {};
-    let commitsStr = "";
-    let myError = "";
+    let commitsStr = '';
+    let myError = '';
 
     // get diff between master and current branch
-    await exec.exec(getCommits(PR_ID), [], {
+    await exec(getCommits(PR_ID), [], {
       listeners: {
         stdout: (data) => {
-          const splitted = data.toString().split("\n");
+          const splitted = data.toString().split('\n');
           splitted.forEach((item) => {
-            if (item === "") {
+            if (item === '') {
               return;
             }
             const sha = item.substr(0, 40);
-            if (sha === "") {
+            if (sha === '') {
               return;
             }
             const message = item.substr(41);
@@ -72,19 +71,19 @@ const postToGit = async (url, key, body) => {
     });
 
     // If there were errors, we throw it
-    if (myError !== "") {
+    if (myError !== '') {
       throw new Error(myError);
     }
 
     const shaKeys = Object.keys(commits).map(
       (sha) =>
         new Promise((resolve, reject) => {
-          exec.exec(changeFiles(sha), [], {
+          exec(changeFiles(sha), [], {
             listeners: {
               stdout: (data) => {
                 commits[sha].files = data
                   .toString()
-                  .split("\n")
+                  .split('\n')
                   .filter((i) => i);
                 resolve();
               },
@@ -93,12 +92,12 @@ const postToGit = async (url, key, body) => {
               },
             },
           });
-        })
+        }),
     );
 
     await Promise.all(shaKeys);
 
-    await postToGit(URL, GITHUB_TOKEN, makeTemplate(commits, PR_URL));
+    await postToGit(URL, GITHUB_TOKEN, makeTemplate(commits));
   } catch (e) {
     console.log(e);
     process.exit(1);

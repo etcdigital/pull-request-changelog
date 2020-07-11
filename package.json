@@ -1,11 +1,11 @@
 {
   "name": "pull-request-changelog",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Github action that automatically generates changelog when PR is opened/updated",
   "main": "dist/index.js",
   "scripts": {
-    "changelog": "node src/index.js",
-    "build": "ncc build src/index.js -o dist --minify"
+    "changelog": "node src/index.ts",
+    "build": "ncc build src/index.ts -o dist --minify"
   },
   "repository": {
     "type": "git",
@@ -30,6 +30,11 @@
     "node-fetch": "^2.6.0"
   },
   "devDependencies": {
-    "@zeit/ncc": "^0.22.3"
+    "@types/node": "^14.0.22",
+    "@zeit/ncc": "^0.22.3",
+    "prettier": "^2.0.5",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-plugin-prettier": "^2.3.0",
+    "typescript": "^3.9.6"
   }
 }
