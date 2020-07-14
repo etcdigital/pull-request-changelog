@@ -62,7 +62,7 @@ export default function MakeTemplate(commits): string {
 
   let testLogs = changes['test'];
   if (testLogs) {
-    changesTemplate.push(getMarkdownOfHead('## 🧪 Tests$', testLogs));
+    changesTemplate.push(getMarkdownOfHead('## 🧪 Tests', testLogs));
   }
 
   const ciLogs = changes['ci'];
