@@ -34,8 +34,9 @@ const prepareOutput = (sha, contentObject) => {
     scope: heading || 'no-scope',
     message: `<details>
     <summary>${sha.substr(0, 7)} - ${showPrefix}${message}</summary>
-    ${breakline}#### Changed files${breakline}
-${contentObject.files.map((file) => `- ${file}`).join('\n')}
+    ${breakline}#### Changed files${breakline}${contentObject.files
+      .map((file) => `- ${file}`)
+      .join('\n')}
   </details>`,
   });
 };
@@ -62,7 +63,7 @@ export default function MakeTemplate(commits): string {
 
   let testLogs = changes['test'];
   if (testLogs) {
-    changesTemplate.push(getMarkdownOfHead('## 🧪 Tests$', testLogs));
+    changesTemplate.push(getMarkdownOfHead('## 🧪 Tests', testLogs));
   }
 
   const ciLogs = changes['ci'];
